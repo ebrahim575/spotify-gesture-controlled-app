@@ -1,88 +1,101 @@
-# 🎵 Spotify Gesture Control 👋
+# Spotify Gesture Control
 
-Control your Spotify playback with simple hand gestures! This application uses computer vision to detect hand movements and translate them into Spotify commands.
+This project uses computer vision to control Spotify playback through hand gestures. It utilizes OpenCV and MediaPipe for hand tracking and gesture recognition, and the Spotify API for playback control.
 
-## ✨ Features
+## Features
 
-- 👉 Skip to next track with a right-to-left swipe
-- 👈 Restart current track with a left-to-right swipe
-- 🖐️ Pause/Play functionality (currently disabled, but code is available)
+- Next track: Swipe hand from left to right
+- Previous track: Swipe hand from right to left
+- Play/Pause: Hold palm facing the camera for 0.5 seconds
 
-## 🛠️ Prerequisites
+## Prerequisites
 
-Before you begin, ensure you have met the following requirements:
+- Python 3.7+
+- Spotify Premium account
+- Spotify Developer account
 
-- Python 3.7 or higher installed
-- A Spotify Premium account
-- A webcam connected to your computer
+## Setup
 
-## 🚀 Getting Started
+1. Clone the repository:
+   ```
+   git clone https://github.com/your-username/spotify-gesture-control.git
+   cd spotify-gesture-control
+   ```
 
-Follow these steps to get your Spotify Gesture Control up and running:
+2. Create and activate a virtual environment:
+   ```
+   python -m venv .venv
+   source .venv/bin/activate  # On Windows, use `.venv\Scripts\activate`
+   ```
 
-### 1. Clone the Repository
+3. Install required packages:
+   ```
+   pip install -r requirements.txt
+   ```
 
-```bash
-git clone https://github.com/yourusername/spotify-gesture-control.git
-cd spotify-gesture-control
-```
+4. Set up Spotify API credentials:
+   - Go to the [Spotify Developer Dashboard](https://developer.spotify.com/dashboard/)
+   - Create a new app
+   - Set the redirect URI to `http://localhost:8888/callback`
+   - Note your Client ID and Client Secret
 
-### 2. Install Dependencies
+5. Create a `creds.py` file in the project root with your Spotify API credentials:
+   ```python
+   CLIENT_ID = 'your_client_id_here'
+   CLIENT_SECRET = 'your_client_secret_here'
+   ```
 
-Install the required Python packages using pip:
+## Usage
 
-```bash
-pip install -r requirements.txt
-```
+1. Activate the virtual environment (if not already activated):
+   ```
+   source .venv/bin/activate  # On Windows, use `.venv\Scripts\activate`
+   ```
 
-### 3. Set Up Spotify Developer Account
+2. Run the main script:
+   ```
+   python main.py
+   ```
 
-1. Go to the [Spotify Developer Dashboard](https://developer.spotify.com/dashboard/)
-2. Log in with your Spotify account
-3. Create a new application
-4. Note down the `Client ID` and `Client Secret`
-5. Add `http://localhost:8888/callback` to the Redirect URIs in your app settings
+3. Use hand gestures in front of your camera to control Spotify playback:
+   - Swipe left to right for next track
+   - Swipe right to left for previous track
+   - Hold palm facing camera for play/pause
 
-### 4. Configure Credentials
+4. Press 'q' to quit the application
 
-Create a file named `creds.py` in the project directory with the following content:
+## For Developers
 
-```python
-CLIENT_ID = 'your_client_id_here'
-CLIENT_SECRET = 'your_client_secret_here'
-```
+### Pulling from origin/main
 
-Replace `'your_client_id_here'` and `'your_client_secret_here'` with the values from your Spotify Developer Dashboard.
+To update your local repository with the latest changes from the main branch:
 
-### 5. Run the Application
+1. Ensure you're on your local main branch:
+   ```
+   git checkout main
+   ```
 
-Execute the main script:
+2. Pull the latest changes:
+   ```
+   git pull origin main
+   ```
 
-```bash
-python main.py
-```
+### Adding new packages
 
-On first run, you'll be prompted to authorize the application. Follow the instructions in your terminal.
+If you add new Python packages to the project:
 
-## 🕹️ Usage
+1. Install the package:
+   ```
+   pip install package_name
+   ```
 
-Once the application is running:
+2. Update the requirements.txt file:
+   ```
+   pip freeze > requirements.txt
+   ```
 
-1. Ensure your webcam has a clear view of your hand
-2. To skip to the next track: Swipe your hand from right to left
-3. To restart the current track: Swipe your hand from left to right
-4. To exit the application: Press 'q' on your keyboard
+3. Commit the updated requirements.txt file
 
-## 📝 Notes
+### Virtual Environment
 
-- Ensure you have an active Spotify session on a device before running the application
-- Adjust lighting for better hand detection if necessary
-- You can fine-tune gesture sensitivity in the `main.py` file
-
-## 🙏 Acknowledgements
-
-- [OpenCV](https://opencv.org/) for computer vision capabilities
-- [MediaPipe](https://mediapipe.dev/) for hand tracking
-- [Spotipy](https://spotipy.readthedocs.io/) for Spotify API integration
-
----
+Always work within the virtual environment to keep dependencies isolated. To activate it:
