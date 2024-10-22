@@ -1,3 +1,6 @@
 # created by virtualenv automatically
 creds.py
 .venv
+notes.txt
+.spotifycache
+.cache
