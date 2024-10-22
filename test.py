@@ -4,18 +4,16 @@ import time
 import spotify_app
 
 # Global variables and initializations
-mp_hands = mp.solutions.hands
-hands = mp_hands.Hands(static_image_mode=False, max_num_hands=1, min_detection_confidence=0.5)
-debug_mode = 0
+mp_face_mesh = mp.solutions.face_mesh
+face_mesh = mp_face_mesh.FaceMesh(max_num_faces=1, min_detection_confidence=0.5, min_tracking_confidence=0.5)
+mp_drawing = mp.solutions.drawing_utils
+drawing_spec = mp_drawing.DrawingSpec(thickness=1, circle_radius=1)
 
 window_width = 432
 window_height = 324
 window_x = 1079
 window_y = -80
 
-gesture_threshold = 0.009
-gesture_speed_threshold = 0.009
-gesture_duration_threshold = 0.15
 debounce_time = 1
 
 def initialize_camera():
@@ -34,61 +32,45 @@ def next_song():
 def draw_text(frame, text, position, color=(0, 255, 0)):
     cv2.putText(frame, text, position, cv2.FONT_HERSHEY_SIMPLEX, 0.5, color, 2)
 
-def process_hand_landmarks(hand_landmarks, frame_resized, previous_data):
-    index_finger_tip = hand_landmarks.landmark[mp_hands.HandLandmark.INDEX_FINGER_TIP]
-    middle_finger_tip = hand_landmarks.landmark[mp_hands.HandLandmark.MIDDLE_FINGER_TIP]
+def process_face_landmarks(face_landmarks, frame_resized):
+    # Get eye landmarks
+    left_eye = [face_landmarks.landmark[145], face_landmarks.landmark[159]]  # Upper and lower landmarks for left eye
+    right_eye = [face_landmarks.landmark[374], face_landmarks.landmark[386]]  # Upper and lower landmarks for right eye
 
-    current_index_x = index_finger_tip.x
-    current_middle_x = middle_finger_tip.x
-    current_time = time.time()
+    # Calculate eye aspect ratio (EAR)
+    left_ear = calculate_ear(left_eye)
+    right_ear = calculate_ear(right_eye)
+    avg_ear = (left_ear + right_ear) / 2
 
-    draw_text(frame_resized, "Hand detected", (20, 60), color=(0, 255, 0))
-    draw_text(frame_resized, f"Index X: {current_index_x:.3f}", (20, 120))
-    draw_text(frame_resized, f"Middle X: {current_middle_x:.3f}", (20, 180))
+    draw_text(frame_resized, "Face detected", (20, 60), color=(0, 255, 0))
+    draw_text(frame_resized, f"Avg EAR: {avg_ear:.3f}", (20, 120))
 
-    return current_index_x, current_middle_x, current_time
+    return avg_ear, time.time()
 
-def calculate_movement(current_data, previous_data, frame_resized):
-    current_index_x, current_middle_x, current_time = current_data
-    previous_index_x, previous_middle_x, previous_time = previous_data
+def calculate_ear(eye):
+    # Calculate the vertical distance between the eye landmarks
+    return abs(eye[0].y - eye[1].y)
 
-    time_diff = current_time - previous_time
-    delta_index_x = current_index_x - previous_index_x
-    delta_middle_x = current_middle_x - previous_middle_x
+def detect_eye_closure(avg_ear, current_time, last_blink_time, frame_resized):
+    blink_threshold = 0.025  # Adjust this value based on your observations
+    blink_duration_threshold = 0.5  # Minimum duration for a blink to trigger an action
 
-    if time_diff > 0:
-        index_speed = delta_index_x / time_diff
-        middle_speed = delta_middle_x / time_diff
-        avg_speed = (abs(index_speed) + abs(middle_speed)) / 2
-    else:
-        index_speed = middle_speed = avg_speed = 0
-
-    draw_text(frame_resized, f"Movement: {'Right' if delta_index_x > 0 else 'Left'}", (20, 240))
-    draw_text(frame_resized, f"Index Speed: {index_speed:.3f}", (20, 300))
-    draw_text(frame_resized, f"Middle Speed: {middle_speed:.3f}", (20, 360))
-    draw_text(frame_resized, f"Avg Speed: {avg_speed:.3f}", (20, 420))
-
-    return delta_index_x, delta_middle_x, avg_speed
-
-def detect_gesture(delta_index_x, delta_middle_x, avg_speed, gesture_start_time, current_time, frame_resized):
-    if delta_index_x > gesture_threshold and delta_middle_x > gesture_threshold and avg_speed > gesture_speed_threshold:
-        if gesture_start_time is None:
-            gesture_start_time = current_time
-        elif current_time - gesture_start_time > gesture_duration_threshold:
+    if avg_ear < blink_threshold:
+        if last_blink_time is None:
+            last_blink_time = current_time
+        elif current_time - last_blink_time > blink_duration_threshold:
             next_song()
-            draw_text(frame_resized, "Next Song Gesture Detected!", (20, 480), color=(0, 255, 255))
-            print("Next Song Gesture Detected and Executed!")
+            draw_text(frame_resized, "Next Song - Eyes Closed!", (20, 480), color=(0, 255, 255))
+            print("Next Song - Eyes Closed!")
             return True, current_time
     else:
-        gesture_start_time = None
-    return False, gesture_start_time
+        last_blink_time = None
+    return False, last_blink_time
 
 def main_loop():
     cap = initialize_camera()
-    previous_index_x = previous_middle_x = previous_time = None
-    gesture_start_time = None
-    gesture_detected = False
-    last_gesture_time = 0
+    last_blink_time = None
+    last_action_time = 0
 
     print("Starting main loop...")
     while True:
@@ -100,29 +82,26 @@ def main_loop():
         frame = cv2.flip(frame, 1)
         frame_resized = cv2.resize(frame, (window_width, window_height))
         frame_rgb = cv2.cvtColor(frame_resized, cv2.COLOR_BGR2RGB)
-        results = hands.process(frame_rgb)
+        results = face_mesh.process(frame_rgb)
 
-        if results.multi_hand_landmarks:
-            for hand_landmarks in results.multi_hand_landmarks:
-                current_data = process_hand_landmarks(hand_landmarks, frame_resized, (previous_index_x, previous_middle_x, previous_time))
+        if results.multi_face_landmarks:
+            for face_landmarks in results.multi_face_landmarks:
+                avg_ear, current_time = process_face_landmarks(face_landmarks, frame_resized)
                 
-                if all(previous_data is not None for previous_data in (previous_index_x, previous_middle_x, previous_time)):
-                    delta_index_x, delta_middle_x, avg_speed = calculate_movement(current_data, (previous_index_x, previous_middle_x, previous_time), frame_resized)
-                    
-                    current_time = current_data[2]
-                    if not gesture_detected and (current_time - last_gesture_time) > debounce_time:
-                        gesture_detected, gesture_start_time = detect_gesture(delta_index_x, delta_middle_x, avg_speed, gesture_start_time, current_time, frame_resized)
-                        if gesture_detected:
-                            last_gesture_time = current_time
-                    elif gesture_detected and (current_time - last_gesture_time) > debounce_time:
-                        gesture_detected = False
+                if (current_time - last_action_time) > debounce_time:
+                    action_triggered, last_blink_time = detect_eye_closure(avg_ear, current_time, last_blink_time, frame_resized)
+                    if action_triggered:
+                        last_action_time = current_time
 
-                previous_index_x, previous_middle_x, previous_time = current_data
+                mp_drawing.draw_landmarks(
+                    image=frame_resized,
+                    landmark_list=face_landmarks,
+                    connections=mp_face_mesh.FACEMESH_TESSELATION,
+                    landmark_drawing_spec=drawing_spec,
+                    connection_drawing_spec=drawing_spec)
 
-                mp.solutions.drawing_utils.draw_landmarks(frame_resized, hand_landmarks, mp_hands.HAND_CONNECTIONS)
-
-        cv2.imshow("Gesture Control", frame_resized)
-        cv2.moveWindow("Gesture Control", window_x, window_y)
+        cv2.imshow("Eye Closure Detection", frame_resized)
+        cv2.moveWindow("Eye Closure Detection", window_x, window_y)
 
         if cv2.waitKey(1) & 0xFF == ord('q'):
             print("Exiting program...")

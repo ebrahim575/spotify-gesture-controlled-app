@@ -24,7 +24,7 @@ def skip_to_next_track():
     except Exception as e:
         print(f"Error skipping to next track: {e}")
 
-def pause_track():
+def pause_playback():
     try:
         current_playback = sp.current_playback()
         if current_playback is not None and current_playback['is_playing']:

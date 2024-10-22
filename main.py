@@ -3,7 +3,6 @@ import mediapipe as mp
 import time
 import spotify_app
 import numpy as np
-from spotify_app import skip_to_next_track, previous_track
 
 # Window parameters (adjust as needed)
 WINDOW_WIDTH = 1600
@@ -12,7 +11,9 @@ WINDOW_X = 100  # X position of the window
 WINDOW_Y = 100  # Y position of the window
 
 # Gesture detection parameters
-FINGER_DISTANCE_THRESHOLD = 0.05  # Adjust this value to change sensitivity
+FINGER_DISTANCE_THRESHOLD_X = 0.08  # Increased X threshold for index and middle finger
+FINGER_DISTANCE_THRESHOLD_Y = 0.08  # Increased Y threshold for index and middle finger
+FINGER_DISTANCE_THRESHOLD = 0.05  # Keep the original threshold for other checks
 VELOCITY_THRESHOLD = 0.5  # Adjust this value to change velocity sensitivity
 USE_VELOCITY = True  # Flag to enable/disable velocity check
 MOVEMENT_DISTANCE_THRESHOLD = 0.1  # Minimum distance to move from left to right
@@ -32,9 +33,9 @@ def check_hand_pose(landmarks, velocities):
     middle_tip = landmarks[mp_hands.HandLandmark.MIDDLE_FINGER_TIP.value]
     ring_tip = landmarks[mp_hands.HandLandmark.RING_FINGER_TIP.value]
 
-    # Check if index and middle finger tips are close in both X and Y
-    index_middle_close = (abs(index_tip[0] - middle_tip[0]) < FINGER_DISTANCE_THRESHOLD and
-                          abs(index_tip[1] - middle_tip[1]) < FINGER_DISTANCE_THRESHOLD)
+    # Check if index and middle finger tips are close, using the new thresholds
+    index_middle_close = (abs(index_tip[0] - middle_tip[0]) < FINGER_DISTANCE_THRESHOLD_X and
+                          abs(index_tip[1] - middle_tip[1]) < FINGER_DISTANCE_THRESHOLD_Y)
 
     # Check if middle and ring finger tips are far apart in Y
     middle_ring_apart = abs(middle_tip[1] - ring_tip[1]) > FINGER_DISTANCE_THRESHOLD
@@ -127,10 +128,10 @@ while True:
                         if movement_distance > MOVEMENT_DISTANCE_THRESHOLD:
                             if (current_time - last_gesture_time) > debounce_time:
                                 if index_tip_x < gesture_start_x:  # Right to left movement
-                                    previous_track()
+                                    spotify_app.skip_to_previous_track()
                                     print("Previous track gesture detected")
                                 else:  # Left to right movement
-                                    next_song()
+                                    spotify_app.skip_to_next_track()
                                     print("Next track gesture detected")
                                 last_gesture_time = current_time
                             gesture_start_x = None  # Reset the start position after gesture is detected
