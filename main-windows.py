@@ -2,8 +2,6 @@ import cv2
 import mediapipe as mp
 import time
 import spotify_app
-import subprocess
-from win10toast import ToastNotifier
 
 # Initialize MediaPipe hands
 mp_hands = mp.solutions.hands
@@ -20,30 +18,20 @@ window_height = 162
 window_x = 1295  # X position for top-right corner (adjust as needed)
 window_y = 0    # Y position for top-right corner (adjust as needed)
 
-# Initialize ToastNotifier for Windows notifications
-toaster = ToastNotifier()
-
-# Function to display Windows notification
-def show_notification(title, message):
-    toaster.show_toast(title, message, duration=3, threaded=True)
-
-# Function to send the next song command and show notification
+# Function to send the next song command
 def next_song():
     print('Executing the next song gesture...')
     spotify_app.skip_to_next_track()
-    show_notification("Spotify Gesture Control", "Skipped to next song")
 
-# Function to send the previous song command and show notification
+# Function to send the previous song command
 def previous_song():
     print('Executing the previous song gesture...')
     spotify_app.previous_track()
-    show_notification("Spotify Gesture Control", "Skipped to previous song")
 
-# Function to restart playback and show notification
+# Function to restart playback
 def restart_playback():
     print('Executing the restart playback gesture...')
     spotify_app.restart_playback()
-    show_notification("Spotify Gesture Control", "Restarted current track")
 
 # Set up the webcam
 print("Initializing camera...")
@@ -117,8 +105,7 @@ while True:
 
                 if not gesture_detected and (current_time - last_gesture_time) > debounce_time:
                     if debug_mode:
-                        print(
-                            f"Debug: delta_index_x: {delta_index_x:.3f}, delta_middle_x: {delta_middle_x:.3f}, avg_speed: {avg_speed:.3f}")
+                        print(f"Debug: delta_index_x: {delta_index_x:.3f}, delta_middle_x: {delta_middle_x:.3f}, avg_speed: {avg_speed:.3f}")
                         print(f"Thresholds: gesture: {gesture_threshold}, speed: {gesture_speed_threshold}")
 
                     # Detect right-to-left swipe for next song or restart playback
@@ -131,8 +118,7 @@ while True:
                                 restart_playback()
                                 gesture_detected = True
                                 last_gesture_time = current_time
-                                draw_text(frame_resized, "Restart Playback Gesture Detected!", (10, 240),
-                                          color=(255, 255, 0))
+                                draw_text(frame_resized, "Restart Playback Gesture Detected!", (10, 240), color=(255, 255, 0))
                                 print("Restart Playback Gesture Detected and Executed!")
 
                             # Skip to next track if toggle is enabled
