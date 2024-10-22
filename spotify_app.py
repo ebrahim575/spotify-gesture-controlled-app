@@ -1,6 +1,7 @@
 import spotipy
 from spotipy.oauth2 import SpotifyOAuth
 from creds import CLIENT_ID, CLIENT_SECRET
+import json
 
 REDIRECT_URI = 'http://localhost:8888/callback'  # This should match your app settings
 SCOPE = 'user-read-playback-state user-modify-playback-state'
@@ -18,15 +19,8 @@ sp = spotipy.Spotify(auth_manager=sp_oauth)
 
 def skip_to_next_track():
     try:
-        current_playback = sp.current_playback()
-        if current_playback is None:
-            print("No active device found. Please start playing on a Spotify device.")
-            return
-
         sp.next_track()
-        print("Skipped to next track")
-    except spotipy.exceptions.SpotifyException as e:
-        print(f"Spotify API Error: {e}")
+        print("Successfully skipped to next track")
     except Exception as e:
         print(f"Error skipping to next track: {e}")
 
@@ -39,8 +33,6 @@ def pause_track():
         else:
             sp.start_playback()
             print("Playback started")
-    except spotipy.exceptions.SpotifyException as e:
-        print(f"Spotify API Error: {e.http_status} - {e.msg}")
     except Exception as e:
         print(f"Error toggling playback: {str(e)}")
 
@@ -48,15 +40,13 @@ def start_playback():
     try:
         sp.start_playback()
         print("Starting playback successfully.")
-    except spotipy.exceptions.SpotifyException as e:
-        print(f"Error: {e}")
+    except Exception as e:
+        print(f"Error starting playback: {str(e)}")
 
 def previous_track():
     try:
         sp.previous_track()
         print("Returned to previous track")
-    except spotipy.exceptions.SpotifyException as e:
-        print(f"Spotify API Error: {e.http_status} - {e.msg}")
     except Exception as e:
         print(f"Error returning to previous track: {str(e)}")
 
@@ -64,7 +54,5 @@ def restart_playback():
     try:
         sp.seek_track(0)
         print("Restarted current track")
-    except spotipy.exceptions.SpotifyException as e:
-        print(f"Spotify API Error: {e.http_status} - {e.msg}")
     except Exception as e:
         print(f"Error restarting playback: {str(e)}")
