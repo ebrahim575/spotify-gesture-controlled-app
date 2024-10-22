@@ -17,14 +17,21 @@ sp_oauth = SpotifyOAuth(
 # Create Spotify client
 sp = spotipy.Spotify(auth_manager=sp_oauth)
 
-def skip_to_next_track():
+def next_track():
     try:
         sp.next_track()
         print("Successfully skipped to next track")
     except Exception as e:
         print(f"Error skipping to next track: {e}")
 
-def pause_playback():
+def previous_track():
+    try:
+        sp.previous_track()
+        print("Returned to previous track")
+    except Exception as e:
+        print(f"Error returning to previous track: {e}")
+
+def toggle_playback():
     try:
         current_playback = sp.current_playback()
         if current_playback is not None and current_playback['is_playing']:
@@ -42,13 +49,6 @@ def start_playback():
         print("Starting playback successfully.")
     except Exception as e:
         print(f"Error starting playback: {str(e)}")
-
-def previous_track():
-    try:
-        sp.previous_track()
-        print("Returned to previous track")
-    except Exception as e:
-        print(f"Error returning to previous track: {str(e)}")
 
 def restart_playback():
     try:

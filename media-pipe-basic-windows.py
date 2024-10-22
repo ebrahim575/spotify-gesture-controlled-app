@@ -23,7 +23,7 @@ hands = mp_hands.Hands(static_image_mode=False, max_num_hands=1, min_detection_c
 # Function to send the next song command
 def next_song():
     print('Executing the next song gesture...')
-    spotify_app.skip_to_next_track()
+    spotify_app.next_track()
 
 # Function to check for the specific hand pose
 def check_hand_pose(landmarks):

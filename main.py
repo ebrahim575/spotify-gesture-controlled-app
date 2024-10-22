@@ -1,8 +1,13 @@
 import cv2
 import mediapipe as mp
 import time
-import spotify_app
 import numpy as np
+import spotify_app
+
+# Toggle variables
+USE_NEXT_TRACK = True
+USE_PREVIOUS_TRACK = True
+USE_PAUSE = True
 
 # Window parameters (adjust as needed)
 WINDOW_WIDTH = 1600
@@ -18,14 +23,39 @@ VELOCITY_THRESHOLD = 0.5  # Adjust this value to change velocity sensitivity
 USE_VELOCITY = True  # Flag to enable/disable velocity check
 MOVEMENT_DISTANCE_THRESHOLD = 0.1  # Minimum distance to move from left to right
 
+# Pause gesture parameters
+PAUSE_THRESHOLD_TIME = 0.5  # Reduced from 1.0 to 0.5 seconds
+PAUSE_X_THRESHOLD = 0.25  # Increased from 0.20
+PAUSE_VELOCITY_THRESHOLD = 0.3  # Increased from 0.15
+PAUSE_Y_RANGE = 0.7  # Increased from 0.6x
+
 # Initialize MediaPipe hands
 mp_hands = mp.solutions.hands
 hands = mp_hands.Hands(static_image_mode=False, max_num_hands=1, min_detection_confidence=0.5)
 
-# Function to send the next song command
-def next_song():
-    print('Executing the next song gesture...')
-    spotify_app.skip_to_next_track()
+def press_f9():
+    key_code = 0x43  # F9 key code
+    event = CGEventCreateKeyboardEvent(None, key_code, True)
+    CGEventPost(kCGHIDEventTap, event)
+    time.sleep(0.01)
+    event = CGEventCreateKeyboardEvent(None, key_code, False)
+    CGEventPost(kCGHIDEventTap, event)
+
+def press_f8():
+    key_code = 0x42  # F8 key code
+    event = CGEventCreateKeyboardEvent(None, key_code, True)
+    CGEventPost(kCGHIDEventTap, event)
+    time.sleep(0.01)
+    event = CGEventCreateKeyboardEvent(None, key_code, False)
+    CGEventPost(kCGHIDEventTap, event)
+
+def press_space():
+    key_code = 0x31  # Space key code
+    event = CGEventCreateKeyboardEvent(None, key_code, True)
+    CGEventPost(kCGHIDEventTap, event)
+    time.sleep(0.01)
+    event = CGEventCreateKeyboardEvent(None, key_code, False)
+    CGEventPost(kCGHIDEventTap, event)
 
 # Function to check for the specific hand pose
 def check_hand_pose(landmarks, velocities):
@@ -46,6 +76,46 @@ def check_hand_pose(landmarks, velocities):
     sufficient_velocity = index_velocity > VELOCITY_THRESHOLD and middle_velocity > VELOCITY_THRESHOLD
 
     return index_middle_close and middle_ring_apart and sufficient_velocity
+
+def check_pause_gesture(landmarks, velocities):
+    wrist = landmarks[mp_hands.HandLandmark.WRIST.value]
+    fingertips = [
+        landmarks[mp_hands.HandLandmark.THUMB_TIP.value],
+        landmarks[mp_hands.HandLandmark.INDEX_FINGER_TIP.value],
+        landmarks[mp_hands.HandLandmark.MIDDLE_FINGER_TIP.value],
+        landmarks[mp_hands.HandLandmark.RING_FINGER_TIP.value],
+        landmarks[mp_hands.HandLandmark.PINKY_TIP.value]
+    ]
+    finger_bases = [
+        landmarks[mp_hands.HandLandmark.THUMB_MCP.value],
+        landmarks[mp_hands.HandLandmark.INDEX_FINGER_MCP.value],
+        landmarks[mp_hands.HandLandmark.MIDDLE_FINGER_MCP.value],
+        landmarks[mp_hands.HandLandmark.RING_FINGER_MCP.value],
+        landmarks[mp_hands.HandLandmark.PINKY_MCP.value]
+    ]
+    
+    # Check if all fingertips are within the X threshold
+    x_values = [tip[0] for tip in fingertips]
+    if max(x_values) - min(x_values) > PAUSE_X_THRESHOLD:
+        return False
+    
+    # Check if all fingertips are above the wrist and within the Y range
+    for tip in fingertips:
+        if tip[1] > wrist[1] or abs(tip[1] - wrist[1]) > PAUSE_Y_RANGE:
+            return False
+    
+    # Check if at least 3 fingers are extended
+    extended_fingers = sum(1 for tip, base in zip(fingertips, finger_bases)
+                           if np.linalg.norm(np.array(tip) - np.array(base)) > 0.1)
+    if extended_fingers < 3:
+        return False
+    
+    # Check if average velocity is below the threshold
+    avg_velocity = np.mean([np.linalg.norm(v) for v in velocities])
+    if avg_velocity > PAUSE_VELOCITY_THRESHOLD:
+        return False
+    
+    return True
 
 # Set up the webcam
 cap = cv2.VideoCapture(0)
@@ -70,6 +140,10 @@ previous_time = None
 last_gesture_time = 0
 debounce_time = 1.0  # 1 second debounce
 gesture_start_x = None
+
+# Initialize pause gesture variables
+pause_gesture_start_time = None
+pause_triggered = False
 
 print("Starting main loop...")
 
@@ -118,6 +192,21 @@ while True:
                     cx, cy = int(lm[0] * w), int(lm[1] * h)
                     cv2.putText(frame_resized, str(id), (cx, cy), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (255, 0, 0), 2)
 
+                if USE_PAUSE and check_pause_gesture(current_landmarks, velocities):
+                    print("Pause gesture detected")
+                    if pause_gesture_start_time is None:
+                        pause_gesture_start_time = current_time
+                        print("Pause gesture start time set")
+                    elif current_time - pause_gesture_start_time >= PAUSE_THRESHOLD_TIME and not pause_triggered:
+                        spotify_app.toggle_playback()
+                        print("Playback toggled")
+                        pause_triggered = True
+                else:
+                    if pause_gesture_start_time is not None:
+                        print("Pause gesture lost")
+                    pause_gesture_start_time = None
+                    pause_triggered = False
+
                 if check_hand_pose(current_landmarks, velocities):
                     index_tip_x = current_landmarks[mp_hands.HandLandmark.INDEX_FINGER_TIP.value][0]
                     
@@ -128,11 +217,13 @@ while True:
                         if movement_distance > MOVEMENT_DISTANCE_THRESHOLD:
                             if (current_time - last_gesture_time) > debounce_time:
                                 if index_tip_x < gesture_start_x:  # Right to left movement
-                                    spotify_app.skip_to_previous_track()
-                                    print("Previous track gesture detected")
+                                    if USE_PREVIOUS_TRACK:
+                                        spotify_app.previous_track()
+                                        print("Previous track gesture detected")
                                 else:  # Left to right movement
-                                    spotify_app.skip_to_next_track()
-                                    print("Next track gesture detected")
+                                    if USE_NEXT_TRACK:
+                                        spotify_app.next_track()
+                                        print("Next track gesture detected")
                                 last_gesture_time = current_time
                             gesture_start_x = None  # Reset the start position after gesture is detected
                 else:

@@ -21,7 +21,7 @@ window_y = 0    # Y position for top-right corner (adjust as needed)
 # Function to send the next song command
 def next_song():
     print('Executing the next song gesture...')
-    spotify_app.skip_to_next_track()
+    spotify_app.next_track()
 
 # Function to send the previous song command
 def previous_song():
