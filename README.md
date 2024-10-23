@@ -6,7 +6,7 @@ This project uses computer vision to control Spotify playback through hand gestu
 
 Check out this demo of the Spotify gesture control app in action:
 
-https://github.com/ebrahim575/spotify-gesture-control/spotify_gesture_demo.mp4
+[Spotify Gesture Control Demo](spotify_gesture_demo.mp4)
 
 ## Features
 
@@ -18,7 +18,7 @@ https://github.com/ebrahim575/spotify-gesture-control/spotify_gesture_demo.mp4
 
 - Python 3.7+
 - Spotify Premium account
-- Spotify Developer account
+- Spotify Developer account 
 
 ## Setup
 
@@ -108,3 +108,4 @@ Always work within the virtual environment to keep dependencies isolated. To act
 
 ```
 source .venv/bin/activate  # On Windows, use `.venv\Scripts\activate`
+```
