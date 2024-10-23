@@ -33,29 +33,6 @@ PAUSE_Y_RANGE = 0.7  # Increased from 0.6x
 mp_hands = mp.solutions.hands
 hands = mp_hands.Hands(static_image_mode=False, max_num_hands=1, min_detection_confidence=0.5)
 
-def press_f9():
-    key_code = 0x43  # F9 key code
-    event = CGEventCreateKeyboardEvent(None, key_code, True)
-    CGEventPost(kCGHIDEventTap, event)
-    time.sleep(0.01)
-    event = CGEventCreateKeyboardEvent(None, key_code, False)
-    CGEventPost(kCGHIDEventTap, event)
-
-def press_f8():
-    key_code = 0x42  # F8 key code
-    event = CGEventCreateKeyboardEvent(None, key_code, True)
-    CGEventPost(kCGHIDEventTap, event)
-    time.sleep(0.01)
-    event = CGEventCreateKeyboardEvent(None, key_code, False)
-    CGEventPost(kCGHIDEventTap, event)
-
-def press_space():
-    key_code = 0x31  # Space key code
-    event = CGEventCreateKeyboardEvent(None, key_code, True)
-    CGEventPost(kCGHIDEventTap, event)
-    time.sleep(0.01)
-    event = CGEventCreateKeyboardEvent(None, key_code, False)
-    CGEventPost(kCGHIDEventTap, event)
 
 # Function to check for the specific hand pose
 def check_hand_pose(landmarks, velocities):
