@@ -2,6 +2,12 @@
 
 This project uses computer vision to control Spotify playback through hand gestures. It utilizes OpenCV and MediaPipe for hand tracking and gesture recognition, and the Spotify API for playback control.
 
+## Demo
+
+Check out this demo of the Spotify gesture control app in action:
+
+https://github.com/ebrahim575/spotify-gesture-control/raw/main/spotify_gesture_demo.mp4
+
 ## Features
 
 - Next track: Swipe hand from left to right
@@ -99,3 +105,6 @@ If you add new Python packages to the project:
 ### Virtual Environment
 
 Always work within the virtual environment to keep dependencies isolated. To activate it:
+
+```
+source .venv/bin/activate  # On Windows, use `.venv\Scripts\activate`
