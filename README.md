@@ -6,7 +6,7 @@ This project uses computer vision to control Spotify playback through hand gestu
 
 Check out this demo of the Spotify gesture control app in action:
 
-https://github.com/ebrahim575/spotify-gesture-control/raw/main/spotify_gesture_demo.mp4
+https://github.com/ebrahim575/spotify-gesture-control/spotify_gesture_demo.mp4
 
 ## Features
 
