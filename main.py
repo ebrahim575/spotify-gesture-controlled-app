@@ -10,8 +10,8 @@ USE_PREVIOUS_TRACK = True
 USE_PAUSE = True
 
 # Window parameters (adjust as needed)
-WINDOW_WIDTH = 1600
-WINDOW_HEIGHT = 900
+WINDOW_WIDTH = 800
+WINDOW_HEIGHT = 450
 WINDOW_X = 100  # X position of the window
 WINDOW_Y = 100  # Y position of the window
 
