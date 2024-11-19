@@ -10,10 +10,11 @@ USE_PREVIOUS_TRACK = True
 USE_PAUSE = True
 
 # Window parameters (adjust as needed)
-WINDOW_WIDTH = 1600
-WINDOW_HEIGHT = 900
-WINDOW_X = 100  # X position of the window
-WINDOW_Y = 100  # Y position of the window
+# WINDOW_WIDTH,WINDOW_HEIGHT = 1600,900
+WINDOW_WIDTH,WINDOW_HEIGHT = 900,450
+
+WINDOW_X = 500  # X position of the window
+WINDOW_Y = 0  # Y position of the window
 
 # Gesture detection parameters
 FINGER_DISTANCE_THRESHOLD_X = 0.08  # Increased X threshold for index and middle finger
@@ -145,7 +146,7 @@ while True:
     current_time = time.time()
 
     # Default threshold state
-    threshold_state = "Threshold Not Met"
+    # threshold_state = "Threshold Not Met"
     threshold_color = (0, 255, 0)  # Green
 
     if results.multi_hand_landmarks:
@@ -215,7 +216,7 @@ while True:
             previous_time = current_time
 
     # Display threshold state
-    cv2.putText(frame_resized, threshold_state, (10, WINDOW_HEIGHT - 30), cv2.FONT_HERSHEY_SIMPLEX, 1, threshold_color, 2)
+    # cv2.putText(frame_resized, threshold_state, (10, WINDOW_HEIGHT - 30), cv2.FONT_HERSHEY_SIMPLEX, 1, threshold_color, 2)
 
     # Combine the frame and data background
     combined_frame = np.hstack((frame_resized, data_background))

@@ -145,7 +145,7 @@ while True:
     current_time = time.time()
 
     # Default threshold state
-    threshold_state = "Threshold Not Met"
+    # threshold_state = "Threshold Not Met"
     threshold_color = (0, 255, 0)  # Green
 
     if results.multi_hand_landmarks:
@@ -212,7 +212,7 @@ while True:
             previous_time = current_time
 
     # Display threshold state
-    cv2.putText(frame_resized, threshold_state, (10, WINDOW_HEIGHT - 30), cv2.FONT_HERSHEY_SIMPLEX, 1, threshold_color, 2)
+    # cv2.putText(frame_resized, threshold_state, (10, WINDOW_HEIGHT - 30), cv2.FONT_HERSHEY_SIMPLEX, 1, threshold_color, 2)
 
     # Combine the frame and data background
     combined_frame = np.hstack((frame_resized, data_background))
